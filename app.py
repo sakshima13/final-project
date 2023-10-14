@@ -3,6 +3,7 @@ from flask import Flask, request, abort, jsonify
 from models import setup_db
 from flask_cors import CORS
 from models import Actor, Movie, db_drop_and_create_all
+from auth import requires_auth
 
 def create_app(test_config=None):
 
@@ -19,6 +20,7 @@ def create_app(test_config=None):
         return response
 
     @app.route('/actors', methods=["GET"])
+    @requires_auth('read:actors')
     def get_actors():
         if request.method == "GET":
             actors = Actor.query.all()
@@ -29,7 +31,9 @@ def create_app(test_config=None):
                 'actors': actors,
                 'success': True
             })
+    
     @app.route('/actors/<int:id>', methods=["DELETE"])
+    @requires_auth('delete:actors')
     def delete_actor(id):
         selected_actor = Actor.query.filter_by(id=id).first()
 
@@ -45,6 +49,7 @@ def create_app(test_config=None):
             abort(405)
 
     @app.route('/actors', methods=["POST"])
+    @requires_auth('create:actors')
     def add_actor():
         try:
             body = request.get_json()
@@ -66,6 +71,7 @@ def create_app(test_config=None):
             abort(422)
             
     @app.route('/actors/<int:id>', methods=["PATCH"])
+    @requires_auth('update:actors')
     def update_actor(id):
         body = request.get_json()
         if not body:
@@ -86,6 +92,7 @@ def create_app(test_config=None):
         })
     
     @app.route('/movies', methods=['GET'])
+    @requires_auth('read:movies')
     def get_movies():
         movie = Movie.query.all()
         if len(movie) == 0:
@@ -97,6 +104,7 @@ def create_app(test_config=None):
         })
         
     @app.route('/movies/<int:id>', methods=["DELETE"])
+    @requires_auth('delete:movies')
     def delete_movie(id):
         selected_movie = Movie.query.filter_by(id=id).first()
 
@@ -112,6 +120,7 @@ def create_app(test_config=None):
             abort(405)
 
     @app.route('/movies', methods=["POST"])
+    @requires_auth('create:movies')
     def add_movie():
         try:
             body = request.get_json()
@@ -131,6 +140,7 @@ def create_app(test_config=None):
             abort(422)
     
     @app.route('/movies/<int:id>', methods=["PATCH"])
+    @requires_auth('update:movies')
     def update_movie(id):
         body = request.get_json()
         if not body:
